@@ -1,0 +1,99 @@
+version: '3.9'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ledger-flow-php
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html:cached
+      - vendor-data:/var/www/html/vendor
+      - var-data:/var/www/html/var
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: '1'
+      DATABASE_URL: 'mysql://symfony:change_me@mysql:3306/ledger_flow?serverVersion=8.0&charset=utf8mb4'
+      REDIS_URL: 'redis://redis:6379'
+      APP_SECRET: 'change_me'
+      API_TOKEN: 'super_secret_api_key'
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - ledger-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: ledger-flow-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ledger_flow
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: change_me
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - ledger-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ledger-flow-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - ledger-network
+
+  web:
+    image: nginx:alpine
+    container_name: ledger-flow-nginx
+    depends_on:
+      - php
+    ports:
+      - '80:80'
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - vendor-data:/var/www/html/vendor
+      - var-data:/var/www/html/var
+    networks:
+      - ledger-network
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+  mysql-data:
+  redis-data:
+  vendor-data:
+
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
+  var-data:
+
+networks:
+  ledger-network:
+    driver: bridge

@@ -1,0 +1,1 @@
+{"version":1,"defects":{"App\\Tests\\Controller\\TransferControllerTest::testRequiresApiKey":3,"App\\Tests\\Controller\\TransferControllerTest::testTransferSucceedsWithValidApiKey":3},"times":{"App\\Tests\\Controller\\TransferControllerTest::testRequiresApiKey":0.045,"App\\Tests\\Controller\\TransferControllerTest::testTransferSucceedsWithValidApiKey":0.014}}

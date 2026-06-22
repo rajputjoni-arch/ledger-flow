@@ -1,0 +1,13 @@
+.git
+.gitignore
+.dockerignore
+vendor
+var
+public/bundles
+.env.*.local
+.env.local
+.env.local.php
+.DS_Store
+*.swp
+*.bak
+*.log
