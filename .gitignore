@@ -1,0 +1,22 @@
+# Symfony standard ignore patterns
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+# Local environment files
+/.env
+.env.local.php
+
+# IDE and system files
+/.idea/
+/.vscode/
+.DS_Store
+*.swp
+*.bak
+*.log
