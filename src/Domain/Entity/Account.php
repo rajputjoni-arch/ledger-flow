@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace App\Domain\Entity;
 
-use App\Repository\AccountRepository;
+use App\Domain\Exception\InsufficientFundsException;
+use App\Domain\Repository\AccountRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AccountRepository::class)]
@@ -70,7 +71,7 @@ final class Account
         }
 
         if ($amountCents > $this->balanceCents) {
-            throw new \RuntimeException('Insufficient funds for transfer.');
+            throw InsufficientFundsException::forAccount($this->id, $this->getBalance(), number_format($amountCents / 100, 2, '.', ''));
         }
 
         $this->balanceCents -= $amountCents;

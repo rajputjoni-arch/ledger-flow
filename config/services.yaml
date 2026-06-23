@@ -24,11 +24,11 @@ services:
         arguments:
             $apiToken: '%app.api_token%'
 
-    App\Service\IdempotencyService:
+    App\Application\Service\IdempotencyService:
         arguments:
             $cache: '@app.idempotency'
 
-    App\Service\TransferService:
+    App\Application\Service\TransferService:
         arguments:
             $accountSnapshotCache: '@app.account_snapshot'
 

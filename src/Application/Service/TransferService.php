@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Service;
+namespace App\Application\Service;
 
-use App\Entity\Transfer;
-use App\Repository\AccountRepository;
+use App\Domain\Entity\Transfer;
+use App\Domain\Repository\AccountRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 
 final class TransferService
@@ -12,7 +13,8 @@ final class TransferService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private AccountRepository $accountRepository,
-        private CacheInterface $accountSnapshotCache
+        private CacheInterface $accountSnapshotCache,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -23,6 +25,13 @@ final class TransferService
         }
 
         $amountCents = $this->normalizeAmount($amount);
+
+        $this->logger->info('Starting transfer transaction.', [
+            'fromAccountId' => $fromAccountId,
+            'toAccountId' => $toAccountId,
+            'amount' => $amount,
+            'currency' => $currency,
+        ]);
 
         $connection = $this->entityManager->getConnection();
         $connection->beginTransaction();
@@ -46,13 +55,26 @@ final class TransferService
             $this->entityManager->persist($transfer);
             $this->entityManager->flush();
             $connection->commit();
+
+            $this->logger->info('Transfer completed successfully.', [
+                'transactionId' => $transfer->getId(),
+                'fromAccountId' => $fromAccountId,
+                'toAccountId' => $toAccountId,
+                'amountCents' => $amountCents,
+                'currency' => $currency,
+            ]);
         } catch (\Throwable $exception) {
             $connection->rollBack();
+            $this->logger->error('Transfer transaction failed, rollback performed.', [
+                'exception' => $exception,
+                'fromAccountId' => $fromAccountId,
+                'toAccountId' => $toAccountId,
+                'amount' => $amount,
+                'currency' => $currency,
+            ]);
+
             throw $exception;
         }
-
-        $this->invalidateAccountSnapshot($fromAccountId);
-        $this->invalidateAccountSnapshot($toAccountId);
 
         return [
             'transactionId' => $transfer->getId(),

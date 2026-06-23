@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Domain\Entity;
 
-use App\Repository\TransferRepository;
+use App\Domain\Repository\TransferRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransferRepository::class)]

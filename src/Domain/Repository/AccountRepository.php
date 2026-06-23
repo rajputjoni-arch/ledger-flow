@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Domain\Repository;
 
-use App\Entity\Account;
+use App\Domain\Entity\Account;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
